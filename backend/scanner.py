@@ -246,7 +246,6 @@ def scan_config(config):
                         "Verify whether the value is sensitive. Prefer an environment-variable reference or secret manager for credentials.",
                         env_id,
                     )
-
         for key, value in headers.items():
             if not isinstance(value, str):
                 continue
