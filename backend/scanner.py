@@ -102,7 +102,6 @@ def scan_config(config):
                 "target": process_id,
                 "label": "launches",
             })
-
             if executable in SHELL_COMMANDS:
                 add_finding(
                     findings,
