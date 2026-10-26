@@ -1,6 +1,5 @@
 import re
 from urllib.parse import urlparse
-
 SECRET_PATTERN = re.compile(
     r"(?:api[_-]?key|access[_-]?token|auth[_-]?token|client[_-]?secret|password|secret|private[_-]?key)",
     re.IGNORECASE,
