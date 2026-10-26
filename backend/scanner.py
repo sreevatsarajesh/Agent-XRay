@@ -61,7 +61,6 @@ def scan_config(config):
         url = server.get("url")
         headers = server.get("headers", {})
         env = server.get("env", {})
-
         if not isinstance(args, list):
             args = []
 
