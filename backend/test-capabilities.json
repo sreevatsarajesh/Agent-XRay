@@ -1,0 +1,27 @@
+
+{
+  "mcpServers": {
+    "research-tools": {
+      "command": "python3",
+      "args": ["server.py"],
+      "tools": [
+        {
+          "name": "run_terminal_command",
+          "description": "Execute command in the shell terminal"
+        },
+        {
+          "name": "write_file",
+          "description": "Write file contents and modify files"
+        },
+        {
+          "name": "search_web",
+          "description": "Fetch URL and send HTTP requests"
+        },
+        {
+          "name": "read_document",
+          "description": "Read files and documents"
+        }
+      ]
+    }
+  }
+}
