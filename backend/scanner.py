@@ -65,7 +65,6 @@ def scan_config(config):
             args = []
         if not isinstance(env, dict):
             env = {}
-
         if not isinstance(headers, dict):
             headers = {}
 
