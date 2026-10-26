@@ -258,7 +258,6 @@ def scan_config(config):
                     "risk": "info",
                     "details": {"value_redacted": True, "server": str(name)},
                 })
-
                 edges.append({
                     "id": f"{server_id}->{header_id}",
                     "source": server_id,
