@@ -124,7 +124,6 @@ def scan_config(config):
                     "Use a trusted, pinned installation method and inspect the complete command before allowing it to run.",
                     server_id,
                 )
-
             for arg in args:
                 if not isinstance(arg, str):
                     continue
