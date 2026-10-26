@@ -275,7 +275,6 @@ def scan_config(config):
                         "Use a secure credential reference and rotate the credential if it has been exposed.",
                         header_id,
                     )
-
     severity_order = {"critical": 4, "high": 3, "medium": 2, "low": 1, "info": 0}
 
     for finding in findings:
