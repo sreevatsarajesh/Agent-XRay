@@ -185,7 +185,6 @@ def scan_config(config):
                     "Use HTTPS where supported and verify the endpoint identity before sending sensitive data.",
                     server_id,
                 )
-
             if parsed.scheme.lower() not in {"http", "https"}:
                 add_finding(
                     findings,
