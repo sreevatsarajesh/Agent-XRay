@@ -282,7 +282,6 @@ def scan_config(config):
             if node["id"] == node_id:
                 if severity_order.get(finding["severity"], 0) > severity_order.get(node["risk"], 0):
                     node["risk"] = finding["severity"]
-
     counts = {
         level: sum(1 for finding in findings if finding["severity"] == level)
         for level in ["critical", "high", "medium", "low"]
