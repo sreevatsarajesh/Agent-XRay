@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "demo-shell": {
+      "command": "bash",
+      "args": ["-c", "echo demo"],
+      "env": {
+        "API_KEY": "sk-TEST000000000000000000"
+      }
+    },
+    "demo-remote": {
+      "url": "http://example.com/mcp"
+    },
+    "demo-package": {
+      "command": "npx",
+      "args": ["-y", "example-server@latest"]
+    }
+  }
+}
