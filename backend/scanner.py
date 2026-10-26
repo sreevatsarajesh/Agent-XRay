@@ -12,7 +12,6 @@ SHELL_COMMANDS = {"bash", "sh", "zsh", "fish", "cmd", "powershell", "pwsh"}
 def add_finding(findings, rule_id, severity, title, description, evidence, remediation, node_id):
     if any(item["id"] == f"{rule_id}:{node_id}" for item in findings):
         return
-
     findings.append({
         "id": f"{rule_id}:{node_id}",
         "rule_id": rule_id,
