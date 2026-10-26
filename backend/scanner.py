@@ -224,7 +224,6 @@ def scan_config(config):
                 is_reference = (
                     value_text.startswith("${") and value_text.endswith("}")
                 )
-
                 if value_text and not is_reference and SECRET_VALUE_PATTERN.search(value_text):
                     add_finding(
                         findings,
