@@ -1,7 +1,6 @@
 import json
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-
 from scanner import scan_config
 
 
