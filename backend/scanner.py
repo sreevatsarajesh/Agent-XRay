@@ -55,7 +55,6 @@ def scan_config(config):
                 "config",
             )
             continue
-
         server_id = f"server:{name}"
         command = server.get("command")
         args = server.get("args", [])
