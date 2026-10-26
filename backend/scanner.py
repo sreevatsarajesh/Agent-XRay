@@ -251,7 +251,6 @@ def scan_config(config):
                 continue
             if key.lower() in {"authorization", "x-api-key", "api-key"}:
                 header_id = f"header:{name}:{key}"
-
                 nodes.append({
                     "id": header_id,
                     "type": "credential",
