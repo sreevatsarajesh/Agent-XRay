@@ -7,7 +7,6 @@ app = FastAPI(
     description="Static security analysis for AI agent MCP configurations.",
     version="0.1.0",
 )
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
