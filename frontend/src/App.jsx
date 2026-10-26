@@ -29,6 +29,9 @@ import {
   LockKeyhole,
   ArrowUpRight,
   Activity,
+  Download,
+  FileText,
+  Fingerprint,
 } from "lucide-react";
 import "@xyflow/react/dist/style.css";
 import "./App.css";
@@ -59,6 +62,7 @@ const ICONS = {
   endpoint: Globe,
   environment: KeyRound,
   credential: LockKeyhole,
+  tool: Fingerprint,
 };
 
 const SEVERITY_ORDER = {
@@ -200,6 +204,7 @@ function FindingItem({ finding, active, onClick }) {
           <span className={`severity-label severity-label-${finding.severity}`}>
             {finding.severity}
           </span>
+          {finding.confidence && <span className={`confidence-label confidence-${finding.confidence}`}>{finding.confidence} confidence</span>}
         </div>
       </div>
       <ChevronRight size={15} className="finding-chevron" />
@@ -239,12 +244,21 @@ function App() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch(`${API_URL}/api/scan`, {
-        method: "POST",
-        body: formData,
-      });
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 30000);
+      let response;
+      let data;
 
-      const data = await response.json();
+      try {
+        response = await fetch(`${API_URL}/api/scan`, {
+          method: "POST",
+          body: formData,
+          signal: controller.signal,
+        });
+        data = await response.json();
+      } finally {
+        window.clearTimeout(timeout);
+      }
 
       if (!response.ok) {
         throw new Error(data.detail || "The scan could not be completed.");
@@ -255,9 +269,10 @@ function App() {
       setNodes(graph.nodes);
       setEdges(graph.edges);
     } catch (err) {
-      setError(
-        `${err.message}. Make sure the FastAPI backend is running on ${API_URL}.`
-      );
+      const message = err.name === "AbortError"
+        ? "The scan timed out after 30 seconds."
+        : err.message || "The scan could not be completed.";
+      setError(`${message} Check that the FastAPI backend is reachable at ${API_URL}.`);
     } finally {
       setLoading(false);
     }
@@ -289,7 +304,7 @@ function App() {
     return [...result.findings]
       .filter((item) => severityFilter === "all" || item.severity === severityFilter)
       .filter((item) =>
-        `${item.title} ${item.rule_id} ${item.description}`
+        `${item.title} ${item.rule_id} ${item.description} ${item.evidence} ${item.remediation} ${item.category || ""}`
           .toLowerCase()
           .includes(query.toLowerCase())
       )
@@ -304,6 +319,42 @@ function App() {
     scanFile(event.target.files?.[0]);
     event.target.value = "";
   };
+
+  const downloadReport = useCallback((format = "json") => {
+    if (!result) return;
+    const report = {
+      product: "Agent X-Ray",
+      report_version: "1.0",
+      generated_at: new Date().toISOString(),
+      source_file: fileName,
+      disclaimer: "Static heuristic analysis only. Findings require human verification and do not prove exploitability.",
+      summary: result.summary,
+      findings: result.findings,
+    };
+    let content;
+    let mime;
+    let extension;
+    if (format === "csv") {
+      const columns = ["severity", "confidence", "category", "rule_id", "title", "description", "evidence", "remediation", "node_id"];
+      const escapeCell = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+      content = [columns.join(","), ...result.findings.map((finding) => columns.map((key) => escapeCell(finding[key])).join(","))].join("\n");
+      mime = "text/csv;charset=utf-8";
+      extension = "csv";
+    } else {
+      content = JSON.stringify(report, null, 2);
+      mime = "application/json";
+      extension = "json";
+    }
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `agent-xray-report.${extension}`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  }, [result, fileName]);
 
   const activeNode = selectedNode
     ? result?.nodes.find((node) => node.id === selectedNode.id)
@@ -369,6 +420,24 @@ function App() {
         <StatCard label="Security findings" value={result?.summary.findings_count ?? "—"} icon={AlertTriangle} tone="tone-amber" />
         <StatCard label="High severity" value={result?.summary.severity_counts.high ?? "—"} icon={Shield} tone="tone-red" />
       </section>
+
+      {result && (
+        <section className="posture-strip">
+          <div className="posture-copy">
+            <span className="posture-kicker">SCAN POSTURE</span>
+            <strong>{result.summary.findings_count ? "Review recommended" : "No heuristic findings detected"}</strong>
+            <span>{result.summary.assessment_note || "Static analysis complete."}</span>
+          </div>
+          <div className="posture-breakdown">
+            {["critical", "high", "medium", "low"].map((level) => (
+              <div className={`posture-segment posture-${level}`} key={level}>
+                <strong>{result.summary.severity_counts?.[level] ?? 0}</strong>
+                <span>{level}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className={`workspace ${fullscreen ? "workspace-fullscreen" : ""}`}>
         <div className="workspace-header">
@@ -524,6 +593,16 @@ function App() {
               <option value="medium">Medium</option>
               <option value="low">Low</option>
             </select>
+            {result && (
+              <div className="export-actions">
+                <button className="button button-secondary export-button" onClick={() => downloadReport("json")} title="Download full JSON report">
+                  <Download size={14} /> JSON
+                </button>
+                <button className="button button-secondary export-button" onClick={() => downloadReport("csv")} title="Download findings as CSV">
+                  <FileText size={14} /> CSV
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -554,15 +633,22 @@ function App() {
               {selectedFinding ? (
                 <>
                   <div className="detail-topline">
-                    <span className={`severity-label severity-label-${selectedFinding.severity}`}>
-                      {selectedFinding.severity} severity
-                    </span>
+                    <div className="detail-badges">
+                      <span className={`severity-label severity-label-${selectedFinding.severity}`}>
+                        {selectedFinding.severity} severity
+                      </span>
+                      {selectedFinding.confidence && <span className={`confidence-label confidence-${selectedFinding.confidence}`}>{selectedFinding.confidence} confidence</span>}
+                    </div>
                     <button className="icon-button" onClick={() => setSelectedFinding(null)} title="Close details">
                       <X size={15} />
                     </button>
                   </div>
                   <h3>{selectedFinding.title}</h3>
                   <p className="detail-description">{selectedFinding.description}</p>
+                  <div className="finding-context">
+                    <span>{selectedFinding.rule_id}</span>
+                    <span>{(selectedFinding.category || "configuration").replaceAll("_", " ")}</span>
+                  </div>
                   <div className="detail-block">
                     <span className="detail-label">EVIDENCE</span>
                     <p>{selectedFinding.evidence}</p>
@@ -615,8 +701,8 @@ function App() {
       </section>
 
       <footer className="app-footer">
-        <div className="footer-brand"><Shield size={14} /> AGENT XRAY <span>v0.1.0</span></div>
-        <p>Static configuration analysis. Findings require human verification.</p>
+        <div className="footer-brand"><Shield size={14} /> AGENT XRAY <span>v1.0.0</span></div>
+        <p>Local-first static analysis · No agent execution · Findings require human verification</p>
       </footer>
     </main>
   );

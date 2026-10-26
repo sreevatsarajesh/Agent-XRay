@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: agent-xray-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: FRONTEND_ORIGINS
+        value: https://agent-xray-ui.onrender.com,http://localhost:5173,http://127.0.0.1:5173
+  - type: static
+    name: agent-xray-ui
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://agent-xray-api.onrender.com
