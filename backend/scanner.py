@@ -172,7 +172,6 @@ def scan_config(config):
                 "target": endpoint_id,
                 "label": "connects to",
             })
-
             if parsed.scheme.lower() == "http" and parsed.hostname not in {
                 "localhost", "127.0.0.1", "::1"
             }:
