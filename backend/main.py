@@ -23,7 +23,6 @@ def health():
 @app.post("/api/scan")
 async def scan(file: UploadFile = File(...)):
     filename = file.filename or "configuration.json"
-
     if not filename.lower().endswith(".json"):
         raise HTTPException(
             status_code=400,
