@@ -28,7 +28,6 @@ async def scan(file: UploadFile = File(...)):
             status_code=400,
             detail="Upload a JSON MCP configuration file.",
         )
-
     try:
         content = await file.read(2 * 1024 * 1024 + 1)
 
