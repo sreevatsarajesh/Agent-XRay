@@ -249,7 +249,6 @@ def scan_config(config):
         for key, value in headers.items():
             if not isinstance(value, str):
                 continue
-
             if key.lower() in {"authorization", "x-api-key", "api-key"}:
                 header_id = f"header:{name}:{key}"
 
