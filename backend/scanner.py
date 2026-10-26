@@ -196,7 +196,6 @@ def scan_config(config):
                     "Verify that the endpoint scheme is supported and intentional.",
                     server_id,
                 )
-
         for key, value in env.items():
             env_id = f"env:{name}:{key}"
             key_text = str(key)
