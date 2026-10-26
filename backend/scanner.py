@@ -96,7 +96,6 @@ def scan_config(config):
                 "risk": "info",
                 "details": {"server": str(name)},
             })
-
             edges.append({
                 "id": f"{server_id}->{process_id}",
                 "source": server_id,
