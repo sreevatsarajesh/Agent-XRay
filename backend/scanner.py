@@ -214,7 +214,6 @@ def scan_config(config):
                     ),
                 },
             })
-
             edges.append({
                 "id": f"{server_id}->{env_id}",
                 "source": server_id,
