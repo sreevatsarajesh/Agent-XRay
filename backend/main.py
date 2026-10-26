@@ -37,7 +37,6 @@ async def scan(file: UploadFile = File(...)):
             )
         config = json.loads(content.decode("utf-8-sig"))
         return scan_config(config)
-
     except UnicodeDecodeError:
         raise HTTPException(
             status_code=400,
