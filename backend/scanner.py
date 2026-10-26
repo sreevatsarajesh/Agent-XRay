@@ -80,7 +80,6 @@ def scan_config(config):
                 "environment_variable_count": len(env),
             },
         })
-
         edges.append({
             "id": f"config->{server_id}",
             "source": "config",
