@@ -86,7 +86,6 @@ def scan_config(config):
             "target": server_id,
             "label": "defines",
         })
-
         if isinstance(command, str) and command:
             executable = command.replace("\\", "/").split("/")[-1].lower()
             process_id = f"process:{name}"
