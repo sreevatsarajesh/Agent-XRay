@@ -23,7 +23,6 @@ def add_finding(findings, rule_id, severity, title, description, evidence, remed
         "node_id": node_id,
     })
 
-
 def scan_config(config):
     if not isinstance(config, dict):
         raise ValueError("The configuration root must be a JSON object.")
