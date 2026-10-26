@@ -155,7 +155,6 @@ def scan_config(config):
         if isinstance(url, str) and url:
             endpoint_id = f"endpoint:{name}"
             parsed = urlparse(url)
-
             nodes.append({
                 "id": endpoint_id,
                 "type": "endpoint",
