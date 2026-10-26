@@ -264,7 +264,6 @@ def scan_config(config):
                     "target": header_id,
                     "label": "sets header",
                 })
-
                 if not (value.startswith("${") and value.endswith("}")):
                     add_finding(
                         findings,
