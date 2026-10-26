@@ -28,7 +28,6 @@ def scan_config(config):
     servers = config.get("mcpServers")
     if not isinstance(servers, dict):
         servers = config.get("servers")
-
     if not isinstance(servers, dict):
         raise ValueError(
             "No supported MCP server object found. Expected 'mcpServers' or 'servers'."
