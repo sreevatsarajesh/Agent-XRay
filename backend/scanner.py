@@ -276,7 +276,6 @@ def scan_config(config):
                         header_id,
                     )
     severity_order = {"critical": 4, "high": 3, "medium": 2, "low": 1, "info": 0}
-
     for finding in findings:
         node_id = finding["node_id"]
         for node in nodes:
