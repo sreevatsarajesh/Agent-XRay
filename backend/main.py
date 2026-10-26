@@ -3,7 +3,6 @@ from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from scanner import scan_config
 
-
 app = FastAPI(
     title="Agent X-Ray API",
     description="Static security analysis for AI agent MCP configurations.",
