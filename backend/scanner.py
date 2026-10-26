@@ -35,7 +35,6 @@ def scan_config(config):
     nodes = []
     edges = []
     findings = []
-
     nodes.append({
         "id": "config",
         "type": "config",
