@@ -286,7 +286,6 @@ def scan_config(config):
         level: sum(1 for finding in findings if finding["severity"] == level)
         for level in ["critical", "high", "medium", "low"]
     }
-
     return {
         "summary": {
             "servers_scanned": len(servers),
