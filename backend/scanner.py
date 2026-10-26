@@ -166,7 +166,6 @@ def scan_config(config):
                     "transport": "remote",
                 },
             })
-
             edges.append({
                 "id": f"{server_id}->{endpoint_id}",
                 "source": server_id,
