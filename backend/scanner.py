@@ -9,8 +9,6 @@ SECRET_VALUE_PATTERN = re.compile(
     r"AKIA[A-Z0-9]{16}|Bearer\s+\S{12,}|eyJ[A-Za-z0-9_-]{20,}\.)"
 )
 SHELL_COMMANDS = {"bash", "sh", "zsh", "fish", "cmd", "powershell", "pwsh"}
-
-
 def add_finding(findings, rule_id, severity, title, description, evidence, remediation, node_id):
     if any(item["id"] == f"{rule_id}:{node_id}" for item in findings):
         return
