@@ -89,7 +89,6 @@ def scan_config(config):
         if isinstance(command, str) and command:
             executable = command.replace("\\", "/").split("/")[-1].lower()
             process_id = f"process:{name}"
-
             nodes.append({
                 "id": process_id,
                 "type": "process",
