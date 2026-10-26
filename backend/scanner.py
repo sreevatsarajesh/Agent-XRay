@@ -67,7 +67,6 @@ def scan_config(config):
             env = {}
         if not isinstance(headers, dict):
             headers = {}
-
         nodes.append({
             "id": server_id,
             "type": "server",
