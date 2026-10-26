@@ -220,7 +220,6 @@ def scan_config(config):
                 "target": env_id,
                 "label": "receives env",
             })
-
             if SECRET_PATTERN.search(key_text):
                 is_reference = (
                     value_text.startswith("${") and value_text.endswith("}")
