@@ -32,7 +32,6 @@ def scan_config(config):
         raise ValueError(
             "No supported MCP server object found. Expected 'mcpServers' or 'servers'."
         )
-
     nodes = []
     edges = []
     findings = []
