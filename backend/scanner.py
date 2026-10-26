@@ -63,7 +63,6 @@ def scan_config(config):
         env = server.get("env", {})
         if not isinstance(args, list):
             args = []
-
         if not isinstance(env, dict):
             env = {}
 
