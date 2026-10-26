@@ -127,7 +127,6 @@ def scan_config(config):
             for arg in args:
                 if not isinstance(arg, str):
                     continue
-
                 if arg in {"-c", "/c", "-Command", "-EncodedCommand"} and executable in SHELL_COMMANDS:
                     add_finding(
                         findings,
