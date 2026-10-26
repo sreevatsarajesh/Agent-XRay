@@ -32,6 +32,9 @@ import {
   Download,
   FileText,
   Fingerprint,
+  CheckCheck,
+  Route,
+  Filter,
 } from "lucide-react";
 import "@xyflow/react/dist/style.css";
 import "./App.css";
@@ -188,7 +191,7 @@ function StatCard({ label, value, icon: Icon, tone = "" }) {
   );
 }
 
-function FindingItem({ finding, active, onClick }) {
+function FindingItem({ finding, active, reviewed, onClick, duplicateCount = 1 }) {
   return (
     <button
       className={`finding-item ${active ? "finding-active" : ""}`}
@@ -207,7 +210,11 @@ function FindingItem({ finding, active, onClick }) {
           {finding.confidence && <span className={`confidence-label confidence-${finding.confidence}`}>{finding.confidence} confidence</span>}
         </div>
       </div>
-      <ChevronRight size={15} className="finding-chevron" />
+      <div className="finding-item-actions">
+        {duplicateCount > 1 && <span className="duplicate-count" title="Related findings">×{duplicateCount}</span>}
+        {reviewed && <CheckCheck size={15} className="reviewed-icon" title="Reviewed" />}
+        <ChevronRight size={15} className="finding-chevron" />
+      </div>
     </button>
   );
 }
@@ -225,6 +232,9 @@ function App() {
   const [dragging, setDragging] = useState(false);
   const [query, setQuery] = useState("");
   const [severityFilter, setSeverityFilter] = useState("all");
+  const [reviewStatus, setReviewStatus] = useState("open");
+  const [reviewedFindings, setReviewedFindings] = useState({});
+  const [groupSimilar, setGroupSimilar] = useState(true);
 
   const scanFile = useCallback(async (file) => {
     if (!file) return;
@@ -298,22 +308,73 @@ function App() {
     setSelectedNode(node || null);
   }, [nodes]);
 
+  const activeNode = selectedNode
+    ? result?.nodes.find((node) => node.id === selectedNode.id)
+    : null;
+
   const orderedFindings = useMemo(() => {
     if (!result) return [];
 
     return [...result.findings]
       .filter((item) => severityFilter === "all" || item.severity === severityFilter)
+      .filter((item) => reviewStatus === "all" || (reviewStatus === "reviewed" ? reviewedFindings[item.id] : !reviewedFindings[item.id]))
       .filter((item) =>
-        `${item.title} ${item.rule_id} ${item.description} ${item.evidence} ${item.remediation} ${item.category || ""}`
+        `${item.title} ${item.rule_id} ${item.description} ${item.evidence} ${item.remediation} ${item.category || ""} ${item.node_id || ""}`
           .toLowerCase()
           .includes(query.toLowerCase())
       )
-      .sort(
-        (a, b) =>
-          (SEVERITY_ORDER[a.severity] ?? 9) -
-          (SEVERITY_ORDER[b.severity] ?? 9)
+      .sort((a, b) =>
+        (SEVERITY_ORDER[a.severity] ?? 9) - (SEVERITY_ORDER[b.severity] ?? 9) ||
+        a.title.localeCompare(b.title)
       );
-  }, [result, severityFilter, query]);
+  }, [result, severityFilter, reviewStatus, reviewedFindings, query]);
+
+  const findingGroups = useMemo(() => {
+    const groups = new Map();
+    for (const finding of orderedFindings) {
+      const key = groupSimilar ? `${finding.rule_id}:${finding.title}` : finding.id;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(finding);
+    }
+    return [...groups.entries()].map(([key, findings]) => ({ key, findings }));
+  }, [orderedFindings, groupSimilar]);
+
+  const attackPath = useMemo(() => {
+    const targetId = selectedFinding?.node_id || activeNode?.id;
+    if (!result || !targetId) return [];
+    const adjacency = new Map(result.nodes.map((node) => [node.id, []]));
+    for (const edge of result.edges) {
+      if (!adjacency.has(edge.source)) adjacency.set(edge.source, []);
+      if (!adjacency.has(edge.target)) adjacency.set(edge.target, []);
+      adjacency.get(edge.source).push(edge.target);
+      adjacency.get(edge.target).push(edge.source);
+    }
+    const queue = [targetId];
+    const previous = new Map([[targetId, null]]);
+    let rootId = null;
+    while (queue.length) {
+      const current = queue.shift();
+      if (current === "config") { rootId = current; break; }
+      for (const next of adjacency.get(current) || []) {
+        if (!previous.has(next)) { previous.set(next, current); queue.push(next); }
+      }
+    }
+    if (!rootId) return [result.nodes.find((node) => node.id === targetId)].filter(Boolean);
+    const path = [];
+    let current = rootId;
+    while (current !== null) {
+      const node = result.nodes.find((item) => item.id === current);
+      if (node) path.push(node);
+      if (current === targetId) break;
+      current = [...previous.entries()].find(([, parent]) => parent === current)?.[0] ?? null;
+    }
+    return path;
+  }, [result, selectedFinding, activeNode]);
+
+  const pathNodeIds = useMemo(() => new Set(attackPath.map((node) => node.id)), [attackPath]);
+  const toggleReviewed = useCallback((findingId) => {
+    setReviewedFindings((current) => ({ ...current, [findingId]: !current[findingId] }));
+  }, []);
 
   const onUpload = (event) => {
     scanFile(event.target.files?.[0]);
@@ -355,10 +416,6 @@ function App() {
     anchor.remove();
     URL.revokeObjectURL(url);
   }, [result, fileName]);
-
-  const activeNode = selectedNode
-    ? result?.nodes.find((node) => node.id === selectedNode.id)
-    : null;
 
   return (
     <main className="app-shell">
@@ -482,6 +539,7 @@ function App() {
           ) : result ? (
             <>
               <div className="graph-legend">
+                {attackPath.length > 1 && <span className="path-legend"><i className="legend-dot legend-path" /> Selected path</span>}
                 <span><i className="legend-dot legend-high" /> High</span>
                 <span><i className="legend-dot legend-medium" /> Medium</span>
                 <span><i className="legend-dot legend-low" /> Low</span>
@@ -489,8 +547,11 @@ function App() {
               </div>
               <ReactFlow
                 key={`${fileName}-${nodes.length}`}
-                nodes={nodes}
-                edges={edges}
+                nodes={nodes.map((node) => ({ ...node, className: pathNodeIds.has(node.id) ? "path-node" : "" }))}
+                edges={edges.map((edge) => {
+                  const onPath = pathNodeIds.has(edge.source) && pathNodeIds.has(edge.target);
+                  return { ...edge, style: { ...edge.style, stroke: onPath ? "#67e8f9" : "#475569", strokeWidth: onPath ? 3 : 1.5, opacity: pathNodeIds.size && !onPath ? 0.3 : 1 }, animated: Boolean(onPath) };
+                })}
                 nodeTypes={NODE_TYPES}
                 onNodeClick={onNodeClick}
                 onNodesChange={(changes) => {
@@ -586,12 +647,17 @@ function App() {
                 placeholder="Search findings..."
               />
             </div>
-            <select value={severityFilter} onChange={(event) => setSeverityFilter(event.target.value)}>
+            <select value={severityFilter} onChange={(event) => setSeverityFilter(event.target.value)} aria-label="Filter by severity">
               <option value="all">All severities</option>
               <option value="critical">Critical</option>
               <option value="high">High</option>
               <option value="medium">Medium</option>
               <option value="low">Low</option>
+            </select>
+            <select value={reviewStatus} onChange={(event) => setReviewStatus(event.target.value)} aria-label="Filter review status">
+              <option value="open">Needs review</option>
+              <option value="reviewed">Reviewed</option>
+              <option value="all">All review states</option>
             </select>
             {result && (
               <div className="export-actions">
@@ -606,6 +672,14 @@ function App() {
           </div>
         </div>
 
+        {result && <div className="findings-tools">
+          <span><Filter size={13} /> {orderedFindings.length} visible · {Object.values(reviewedFindings).filter(Boolean).length} reviewed</span>
+          <div className="findings-tool-actions">
+            <button className={`text-toggle ${groupSimilar ? "toggle-active" : ""}`} onClick={() => setGroupSimilar((value) => !value)}>{groupSimilar ? "Grouped by rule" : "Group similar"}</button>
+            <button className="text-toggle" onClick={() => setReviewedFindings((current) => Object.fromEntries([...Object.entries(current), ...orderedFindings.map((finding) => [finding.id, true])]))}><CheckCheck size={13} /> Mark visible reviewed</button>
+          </div>
+        </div>}
+
         {!result ? (
           <div className="findings-empty">
             <Shield size={20} />
@@ -619,13 +693,20 @@ function App() {
         ) : (
           <div className="findings-layout">
             <div className="findings-list">
-              {orderedFindings.map((finding) => (
-                <FindingItem
-                  key={finding.id}
-                  finding={finding}
-                  active={selectedFinding?.id === finding.id}
-                  onClick={() => selectFinding(finding)}
-                />
+              {findingGroups.map((group) => (
+                <div className="finding-group" key={group.key}>
+                  {groupSimilar && group.findings.length > 1 && <div className="finding-group-heading"><span>{group.findings[0].title}</span><span>{group.findings.length} related</span></div>}
+                  {group.findings.map((finding) => (
+                    <FindingItem
+                      key={finding.id}
+                      finding={finding}
+                      active={selectedFinding?.id === finding.id}
+                      reviewed={Boolean(reviewedFindings[finding.id])}
+                      duplicateCount={groupSimilar ? group.findings.length : 1}
+                      onClick={() => selectFinding(finding)}
+                    />
+                  ))}
+                </div>
               ))}
             </div>
 
@@ -639,9 +720,12 @@ function App() {
                       </span>
                       {selectedFinding.confidence && <span className={`confidence-label confidence-${selectedFinding.confidence}`}>{selectedFinding.confidence} confidence</span>}
                     </div>
-                    <button className="icon-button" onClick={() => setSelectedFinding(null)} title="Close details">
-                      <X size={15} />
-                    </button>
+                    <div className="detail-actions">
+                      <button className={`button review-button ${reviewedFindings[selectedFinding.id] ? "review-button-done" : "button-secondary"}`} onClick={() => toggleReviewed(selectedFinding.id)}>
+                        <CheckCheck size={14} /> {reviewedFindings[selectedFinding.id] ? "Reviewed" : "Mark reviewed"}
+                      </button>
+                      <button className="icon-button" onClick={() => setSelectedFinding(null)} title="Close details"><X size={15} /></button>
+                    </div>
                   </div>
                   <h3>{selectedFinding.title}</h3>
                   <p className="detail-description">{selectedFinding.description}</p>
@@ -668,6 +752,18 @@ function App() {
                     <span><small>AFFECTED NODE</small>{selectedFinding.node_id}</span>
                     <ArrowUpRight size={15} />
                   </button>
+                  <div className="attack-path-card">
+                    <div className="attack-path-heading"><Route size={15} /><span>ATTACK-SURFACE PATH</span><span className="path-step-count">{attackPath.length} steps</span></div>
+                    <p className="attack-path-caption">Relationship path through the configuration graph. This is a potential exposure path, not proof of exploitability.</p>
+                    <div className="attack-path-steps">
+                      {attackPath.map((node, index) => {
+                        const PathIcon = ICONS[node.type] || Network;
+                        return <button key={node.id} className={`attack-path-step ${index === attackPath.length - 1 ? "attack-path-target" : ""}`} onClick={() => { const graphNode = nodes.find((item) => item.id === node.id); setSelectedNode(graphNode || null); setSelectedFinding(null); }}>
+                          <span className="path-step-index">{String(index + 1).padStart(2, "0")}</span><PathIcon size={14} /><span className="path-step-copy"><strong>{node.label}</strong><small>{node.type} · {node.id}</small></span><ArrowUpRight size={13} />
+                        </button>;
+                      })}
+                    </div>
+                  </div>
                 </>
               ) : activeNode ? (
                 <>
