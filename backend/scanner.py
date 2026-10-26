@@ -4,7 +4,6 @@ SECRET_PATTERN = re.compile(
     r"(?:api[_-]?key|access[_-]?token|auth[_-]?token|client[_-]?secret|password|secret|private[_-]?key)",
     re.IGNORECASE,
 )
-
 SECRET_VALUE_PATTERN = re.compile(
     r"^(?:sk-[A-Za-z0-9_-]{12,}|gh[pousr]_[A-Za-z0-9]{20,}|"
     r"AKIA[A-Z0-9]{16}|Bearer\s+\S{12,}|eyJ[A-Za-z0-9_-]{20,}\.)"
