@@ -20,7 +20,6 @@ app.add_middleware(
 @app.get("/health")
 def health():
     return {"status": "ok", "service": "agent-xray"}
-
 @app.post("/api/scan")
 async def scan(file: UploadFile = File(...)):
     filename = file.filename or "configuration.json"
