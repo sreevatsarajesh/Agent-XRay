@@ -152,7 +152,6 @@ def scan_config(config):
                         server_id,
                     )
                     break
-
         if isinstance(url, str) and url:
             endpoint_id = f"endpoint:{name}"
             parsed = urlparse(url)
