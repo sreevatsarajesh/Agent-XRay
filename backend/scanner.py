@@ -113,7 +113,6 @@ def scan_config(config):
                     "Prefer a direct executable with fixed arguments when possible. Review every argument and avoid passing untrusted input to shell commands.",
                     server_id,
                 )
-
             if executable in {"curl", "wget"}:
                 add_finding(
                     findings,
