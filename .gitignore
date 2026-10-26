@@ -1,0 +1,84 @@
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.json
+credentials.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.python-version
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# Node.js and frontend build output
+node_modules/
+dist/
+build/
+.vite/
+coverage/
+.npm/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Operating system
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+Desktop.ini
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Local databases and runtime files
+*.sqlite
+*.sqlite3
+*.db
+*.pid
+
+# Test and temporary files
+.tmp/
+temp/
+tmp/
+.cache/
+
+# Deployment and local overrides
+.env.production
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Uploaded test data and generated reports
+uploads/
+reports/
+scan-results/
