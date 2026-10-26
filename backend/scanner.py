@@ -8,7 +8,6 @@ SECRET_VALUE_PATTERN = re.compile(
     r"^(?:sk-[A-Za-z0-9_-]{12,}|gh[pousr]_[A-Za-z0-9]{20,}|"
     r"AKIA[A-Z0-9]{16}|Bearer\s+\S{12,}|eyJ[A-Za-z0-9_-]{20,}\.)"
 )
-
 SHELL_COMMANDS = {"bash", "sh", "zsh", "fish", "cmd", "powershell", "pwsh"}
 
 
