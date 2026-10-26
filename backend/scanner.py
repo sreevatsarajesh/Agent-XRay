@@ -139,7 +139,6 @@ def scan_config(config):
                         server_id,
                     )
                     break
-
             for arg in args:
                 if isinstance(arg, str) and "@latest" in arg.lower():
                     add_finding(
