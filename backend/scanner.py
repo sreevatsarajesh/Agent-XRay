@@ -42,7 +42,6 @@ def scan_config(config):
         "risk": "info",
         "details": {"server_count": len(servers)},
     })
-
     for name, server in servers.items():
         if not isinstance(server, dict):
             add_finding(
