@@ -30,7 +30,6 @@ async def scan(file: UploadFile = File(...)):
         )
     try:
         content = await file.read(2 * 1024 * 1024 + 1)
-
         if len(content) > 2 * 1024 * 1024:
             raise HTTPException(
                 status_code=413,
