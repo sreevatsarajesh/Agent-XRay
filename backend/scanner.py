@@ -25,7 +25,6 @@ def add_finding(findings, rule_id, severity, title, description, evidence, remed
 def scan_config(config):
     if not isinstance(config, dict):
         raise ValueError("The configuration root must be a JSON object.")
-
     servers = config.get("mcpServers")
 
     if not isinstance(servers, dict):
