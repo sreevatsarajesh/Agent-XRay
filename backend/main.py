@@ -35,7 +35,6 @@ async def scan(file: UploadFile = File(...)):
                 status_code=413,
                 detail="Configuration file exceeds the 2 MB limit.",
             )
-
         config = json.loads(content.decode("utf-8-sig"))
         return scan_config(config)
 
